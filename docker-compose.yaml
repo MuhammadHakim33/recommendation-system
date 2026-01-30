@@ -1,0 +1,33 @@
+services:
+  manticore:
+    container_name: rec-manticore
+    image: manticoresearch/manticore
+    restart: always
+    ports:
+      - 127.0.0.1:${MANTICORE_SQL_PORT:-9306}:9306
+      - 127.0.0.1:${MANTICORE_PORT:-9308}:9308
+    ulimits:
+      nproc: 65535
+      nofile:
+         soft: 65535
+         hard: 65535
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - mysql_data/data:/var/lib/manticore
+  db:
+    container_name: rec-mysql
+    image: mysql:8.4
+    restart: always
+    ports:
+      - 127.0.0.1:${DB_PORT:-3306}:3306
+    environment:
+      MYSQL_DATABASE: ${DB_NAME:-recommendation}
+      MYSQL_USER: ${DB_USER:-admin}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-password123}
+    volumes:
+      - mysql_data/mysql:/var/lib/mysql
+      
+volumes:
+  mysql_data:
