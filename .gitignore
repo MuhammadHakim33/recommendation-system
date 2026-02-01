@@ -5,3 +5,7 @@ mysql
 data
 
 .env
+
+
+task.md
+implementation_plan.md
