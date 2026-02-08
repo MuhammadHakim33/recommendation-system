@@ -1,9 +1,34 @@
-from configs.db import engine
 from sqlmodel import Session, select
-from models.Article import Article
+from models.Article import Article, View
+from configs.db import engine
 
-def get_articles_by_ids(article_ids: list[int]):
-    with Session(engine) as session:
-        statement = select(Article).where(Article.id.in_(article_ids))
-        result = session.exec(statement)
-        return result.all()
+class ArticleRepository:
+    def get_articles_by_ids(self, article_ids: list[int]):
+        try:
+            with Session(engine) as session:
+                statement = select(Article).where(Article.id.in_(article_ids))
+                result = session.exec(statement)
+                return result.all()
+        except Exception as e:
+            print(f"Error getting articles: {e}")
+            return []
+
+    def get_views_by_user_id(self, user_id: int):
+        try:
+            with Session(engine) as session:
+                statement = select(View).where(View.user_id == user_id)
+                result = session.exec(statement)
+                return result.all()
+        except Exception as e:
+            print(f"Error getting views: {e}")
+            return []
+    
+    def get_views_by_article_ids(self, article_ids: list[int]):
+        try:
+            with Session(engine) as session:
+                statement = select(View).where(View.article_id.in_(article_ids))
+                result = session.exec(statement)
+                return result.all()
+        except Exception as e:
+            print(f"Error getting views: {e}")
+            return []
