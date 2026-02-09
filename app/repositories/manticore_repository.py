@@ -17,7 +17,7 @@ class ManticoreRepository:
             print(f"Error querying Manticore: {e}")
             return None
     
-    def get_similar_articles(self, user_vec: list[float], limit: int = 10):
+    def get_similar_articles(self, user_vec: list[float], limit: int):
         try:
             with manticoresearch.ApiClient(conf) as client:
                 utils_api = manticoresearch.UtilsApi(client)

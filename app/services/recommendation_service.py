@@ -37,7 +37,7 @@ class RecommendationService:
 
         return user_vec.tolist()
     
-    def get_similar_articles(self, user_vector: list[float], limit: int = 10):
+    def get_similar_articles(self, user_vector: list[float], limit: int):
         return self.manticore_repo.get_similar_articles(user_vector, limit)['data']
 
     def ranking(self, articles_manticore: list[dict]) -> list:

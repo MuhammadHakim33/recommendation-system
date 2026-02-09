@@ -31,10 +31,10 @@ def health():
     return {"status": "ok"}
 
 @app.get("/recommendation/{user_id}")
-def get_recommendation(user_id: int):
+def get_recommendation(user_id: int, limit: int = 10):
     try:
         user_vector = recommendation_service.get_user_vector(user_id)
-        articles = recommendation_service.get_similar_articles(user_vector, 20)
+        articles = recommendation_service.get_similar_articles(user_vector, limit)
         result = recommendation_service.ranking(articles)
         
         return JSONResponse(
