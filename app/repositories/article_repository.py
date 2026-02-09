@@ -1,4 +1,5 @@
 from sqlmodel import Session, select
+from sqlalchemy.orm.exc import NoResultFound
 from models.Article import Article, View
 from configs.db import engine
 
@@ -21,7 +22,7 @@ class ArticleRepository:
                 return result.all()
         except Exception as e:
             print(f"Error getting views: {e}")
-            return []
+            return []  # Return empty list instead of raising
     
     def get_views_by_article_ids(self, article_ids: list[int]):
         try:
