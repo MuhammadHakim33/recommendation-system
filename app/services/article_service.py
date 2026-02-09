@@ -12,3 +12,11 @@ class ArticleService:
 
         return articles
         
+    def insert_article_to_manticore(self, article: dict):
+        self.manticore_repo.insert_article(article)
+
+    def update_article_to_manticore(self, article_id: int, article: dict):
+        self.manticore_repo.update_article(article_id, article)
+
+    def delete_article_to_manticore(self, article_id: int):
+        self.manticore_repo.delete_article(article_id)

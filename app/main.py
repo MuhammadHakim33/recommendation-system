@@ -7,6 +7,7 @@ from services.article_service import ArticleService
 from repositories.article_repository import ArticleRepository
 from repositories.manticore_repository import ManticoreRepository
 from schemas.response import SuccessResponse, ErrorResponse, Metadata
+from schemas.request import ArticleCreateRequest, ArticleUpdateRequest
 
 # ==========================================
 #              INITIALIZATION SECTION
@@ -80,6 +81,66 @@ def get_news(q: str, l: int = 10):
             content=jsonable_encoder(ErrorResponse(
                 message="No articles found",
                 error=str(e)
+            ))
+        )
+    except Exception as e:
+        return JSONResponse(
+            status_code=500,
+            content=jsonable_encoder(ErrorResponse(
+                message="Internal server error",
+                error=str(e)
+            ))
+        )
+
+@app.post("/news")
+def insert_article(req: ArticleCreateRequest):
+    try:
+        article_service.insert_article_to_manticore(req.dict())
+        return JSONResponse(
+            status_code=200,
+            content=jsonable_encoder(SuccessResponse(
+                message="Article inserted successfully",
+                data=req,
+            ))
+        )
+    except Exception as e:
+        return JSONResponse(
+            status_code=500,
+            content=jsonable_encoder(ErrorResponse(
+                message="Internal server error",
+                error=str(e)
+            ))
+        )
+
+@app.put("/news/{article_id}")
+def update_article(article_id: int, req: ArticleUpdateRequest):
+    try:
+        article_service.update_article_to_manticore(article_id, req.dict())
+        return JSONResponse(
+            status_code=200,
+            content=jsonable_encoder(SuccessResponse(
+                message="Article updated successfully",
+                data=req,
+            ))
+        )
+    except Exception as e:
+        return JSONResponse(
+            status_code=500,
+            content=jsonable_encoder(ErrorResponse(
+                message="Internal server error",
+                error=str(e)
+            ))
+        )
+
+@app.delete("/news/{article_id}")
+def delete_article(article_id: int):
+    try:
+        article_service.delete_article_to_manticore(article_id)
+        return JSONResponse(
+            status_code=200,
+            content=jsonable_encoder(SuccessResponse(
+                message="Article deleted successfully",
+                data=article_id,
             ))
         )
     except Exception as e:
