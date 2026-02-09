@@ -14,6 +14,16 @@ class ArticleRepository:
             print(f"Error getting articles: {e}")
             return []
 
+    def get_article_by_id(self, article_id: int):
+        try:
+            with Session(engine) as session:
+                statement = select(Article).where(Article.id == article_id)
+                result = session.exec(statement)
+                return result.first()
+        except Exception as e:
+            print(f"Error getting article: {e}")
+            return None
+
     def get_views_by_user_id(self, user_id: int):
         try:
             with Session(engine) as session:

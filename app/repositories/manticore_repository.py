@@ -28,3 +28,14 @@ class ManticoreRepository:
         except Exception as e:
             print(f"Error querying Manticore: {e}")
             return None
+
+    def search_articles(self, query: str, limit: int):
+        try:
+            with manticoresearch.ApiClient(conf) as client:
+                utils_api = manticoresearch.UtilsApi(client)
+                query = f"SELECT id, article_id, title, knn_dist() FROM articles WHERE knn(embedding_vector, 5, '{query}') LIMIT {limit}"
+                response = utils_api.sql(query)
+                return response.to_dict()[0]
+        except Exception as e:
+            print(f"Error searching Manticore: {e}")
+            return None
