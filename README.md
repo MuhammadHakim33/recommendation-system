@@ -318,138 +318,276 @@ Similarity Results
 
 ## 🌐 API Endpoints
 
+Semua endpoint menggunakan format response yang konsisten:
+
+**Success Response:**
+```json
+{
+  "status": "success",
+  "message": "...",
+  "data": { ... }
+}
+```
+
+**Error Response:**
+```json
+{
+  "status": "error",
+  "message": "...",
+  "error": "..."
+}
+```
+
+---
+
 ### **1. Get Recommendation**
 
-Dapatkan rekomendasi artikel untuk user tertentu.
+Dapatkan rekomendasi artikel untuk user tertentu berdasarkan reading history.
 
 ```http
-GET /api/recommendation/{user_id}?limit={limit}
+GET /recommendation/{user_id}?limit={limit}
 ```
 
 **Parameters:**
-- `user_id` (path) - ID user
+- `user_id` (path, required) - ID user
 - `limit` (query, optional) - Jumlah rekomendasi (default: 10)
 
-**Response:**
+**Success Response (200):**
 ```json
 {
-  "user_id": 1,
-  "recommendations": [
+  "status": "success",
+  "message": "Recommendation generated successfully",
+  "data": [
     {
+      "id": 6344659001107546114,
       "article_id": 101,
-      "title": "Breaking News: AI Revolution",
-      "category": "Technology",
-      "score": 0.12,
-      "published_at": "2026-02-10T10:00:00"
+      "knn_distance": 0.12
+    },
+    {
+      "id": 6344659001107546115,
+      "article_id": 102,
+      "knn_distance": 0.18
     }
-  ],
-  "total": 10
+  ]
+}
+```
+
+**Error Response (404):**
+```json
+{
+  "status": "error",
+  "message": "User not found or has no reading history",
+  "error": "No reading history found"
+}
+```
+
+**Error Response (500):**
+```json
+{
+  "status": "error",
+  "message": "Internal server error",
+  "error": "Connection timeout"
 }
 ```
 
 **Example:**
 ```bash
-curl http://localhost:8000/api/recommendation/1?limit=10
+curl http://localhost:8000/recommendation/1?limit=10
 ```
 
 ---
 
 ### **2. Search News (Semantic Search)**
 
-Cari berita menggunakan pencarian semantik.
+Cari berita menggunakan pencarian semantik dengan full-text search.
 
 ```http
-GET /api/news?q={keyword}&limit={limit}
+GET /news?q={keyword}&l={limit}
 ```
 
 **Parameters:**
-- `q` (query) - Kata kunci pencarian
-- `limit` (query, optional) - Jumlah hasil (default: 10)
+- `q` (query, required) - Kata kunci pencarian
+- `l` (query, optional) - Jumlah hasil (default: 10)
 
-**Response:**
+**Success Response (200):**
 ```json
 {
-  "query": "teknologi AI",
-  "results": [
+  "status": "success",
+  "message": "Search articles successfully",
+  "data": [
     {
+      "id": 6344659001107546114,
       "article_id": 102,
       "title": "Perkembangan AI di Indonesia",
-      "similarity_score": 0.85
+      "content": "Artikel lengkap tentang AI..."
+    },
+    {
+      "id": 6344659001107546115,
+      "article_id": 103,
+      "title": "Teknologi Machine Learning",
+      "content": "Penjelasan ML..."
     }
-  ],
-  "total": 5
+  ]
+}
+```
+
+**Error Response (404):**
+```json
+{
+  "status": "error",
+  "message": "No articles found",
+  "error": "No articles found"
 }
 ```
 
 **Example:**
 ```bash
-curl "http://localhost:8000/api/news?q=teknologi%20AI&limit=5"
+curl "http://localhost:8000/news?q=teknologi%20AI&l=5"
 ```
 
 ---
 
 ### **3. Insert News**
 
-Tambah artikel baru ke Manticore.
+Tambah artikel baru ke Manticore dengan auto-embedding.
 
 ```http
-POST /api/news
+POST /news
 ```
 
 **Request Body:**
 ```json
 {
-  "article_id": 103,
-  "title": "Judul Berita",
-  "content": "Isi berita lengkap...",
-  "category": "Technology"
+  "id": 1000,
+  "title": "Breaking News: AI Revolution",
+  "content": "Artificial Intelligence is transforming the world..."
 }
 ```
 
-**Response:**
+**Request Schema:**
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `id` | integer | ✅ Yes | Article ID (unique) |
+| `title` | string | ✅ Yes | Judul artikel |
+| `content` | string | ✅ Yes | Konten artikel lengkap |
+
+**Success Response (200):**
 ```json
 {
-  "success": true,
+  "status": "success",
   "message": "Article inserted successfully",
-  "article_id": 103
+  "data": {
+    "id": 1000,
+    "title": "Breaking News: AI Revolution",
+    "content": "Artificial Intelligence is transforming the world..."
+  }
+}
+```
+
+**Error Response (500):**
+```json
+{
+  "status": "error",
+  "message": "Internal server error",
+  "error": "Duplicate entry '1000' for key 'PRIMARY'"
 }
 ```
 
 **Example:**
 ```bash
-curl -X POST http://localhost:8000/api/news \
+curl -X POST http://localhost:8000/news \
   -H "Content-Type: application/json" \
   -d '{
-    "article_id": 103,
+    "id": 1000,
     "title": "Test Article",
-    "content": "This is a test article content"
+    "content": "This is a test article content about technology and innovation."
   }'
 ```
+
+**Important Notes:**
+- `id` harus unique
+- `title` dan `content` akan otomatis di-convert ke embedding vector oleh Manticore
+- Embedding menggunakan model `sentence-transformers/all-MiniLM-L6-v2`
 
 ---
 
 ### **4. Update News**
 
-Update artikel yang sudah ada di Manticore.
+Update artikel yang sudah ada di Manticore (full-text fields).
 
 ```http
-PUT /api/news/{news_id}
+PUT /news/{article_id}
 ```
+
+**Parameters:**
+- `article_id` (path, required) - ID artikel yang akan diupdate
 
 **Request Body:**
 ```json
 {
-  "title": "Judul Baru",
-  "content": "Konten yang diupdate"
+  "title": "Updated Title",
+  "content": "Updated content..."
 }
 ```
 
-**Response:**
+**Request Schema:**
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `title` | string | ❌ No | Judul baru (optional) |
+| `content` | string | ❌ No | Konten baru (optional) |
+
+**Catatan:** 
+- Semua field **optional**
+- Field yang tidak dikirim akan tetap menggunakan nilai lama
+- Menggunakan `REPLACE INTO` karena title dan content adalah full-text fields
+
+**Success Response (200):**
 ```json
 {
-  "success": true,
-  "message": "Article updated successfully"
+  "status": "success",
+  "message": "Article updated successfully",
+  "data": {
+    "total": 1,
+    "error": "",
+    "warning": ""
+  }
 }
+```
+
+**Error Response (404):**
+```json
+{
+  "status": "error",
+  "message": "Internal server error",
+  "error": "No articles found"
+}
+```
+
+**Error Response (500):**
+```json
+{
+  "status": "error",
+  "message": "Internal server error",
+  "error": "Failed to update article: syntax error"
+}
+```
+
+**Example:**
+```bash
+# Update title saja
+curl -X PUT http://localhost:8000/news/1000 \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "Updated Title Without Changing Content"
+  }'
+
+# Update keduanya
+curl -X PUT http://localhost:8000/news/1000 \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "New Title",
+    "content": "Completely new content here..."
+  }'
 ```
 
 ---
@@ -459,16 +597,51 @@ PUT /api/news/{news_id}
 Hapus artikel dari Manticore.
 
 ```http
-DELETE /api/news/{news_id}
+DELETE /news/{article_id}
 ```
 
-**Response:**
+**Parameters:**
+- `article_id` (path, required) - ID artikel yang akan dihapus
+
+**Success Response (200):**
 ```json
 {
-  "success": true,
-  "message": "Article deleted successfully"
+  "status": "success",
+  "message": "Article deleted successfully",
+  "data": {
+    "article_id": 1000,
+    "status": "deleted"
+  }
 }
 ```
+
+**Error Response (404):**
+```json
+{
+  "status": "error",
+  "message": "Internal server error",
+  "error": "No articles found"
+}
+```
+
+**Error Response (500):**
+```json
+{
+  "status": "error",
+  "message": "Internal server error",
+  "error": "Failed to delete article: ..."
+}
+```
+
+**Example:**
+```bash
+curl -X DELETE http://localhost:8000/news/1000
+```
+
+**Important Notes:**
+- Artikel yang sudah dihapus **tidak bisa dikembalikan**
+- Pastikan artikel tidak sedang digunakan sebelum dihapus
+- Operasi ini permanent dan langsung menghapus dari Manticore index
 
 ---
 
@@ -574,92 +747,3 @@ recommendation/
 ```
 
 ---
-
-## 🐛 Troubleshooting
-
-### MySQL Connection Error
-
-**Jika menggunakan Docker:**
-```bash
-# Check if MySQL is running
-docker ps
-
-# Restart MySQL
-docker-compose restart mysql
-
-# Check logs
-docker logs <mysql-container-id>
-```
-
-**Jika instalasi manual:**
-```bash
-# Check MySQL status
-sudo systemctl status mysql  # Linux
-brew services info mysql     # macOS
-
-# Restart MySQL
-sudo systemctl restart mysql  # Linux
-brew services restart mysql   # macOS
-
-# Check logs
-sudo tail -f /var/log/mysql/error.log  # Linux
-tail -f /opt/homebrew/var/mysql/*.err  # macOS
-```
-
-### Manticore Connection Error
-
-**Jika menggunakan Docker:**
-```bash
-# Check Manticore logs
-docker logs <manticore-container-id>
-
-# Restart Manticore
-docker-compose restart manticore
-```
-
-**Jika instalasi manual:**
-```bash
-# Check Manticore status
-sudo systemctl status manticore  # Linux
-brew services info manticoresearch  # macOS
-
-# Restart Manticore
-sudo systemctl restart manticore  # Linux
-brew services restart manticoresearch  # macOS
-
-# Check logs
-sudo tail -f /var/log/manticore/searchd.log  # Linux
-tail -f /opt/homebrew/var/log/manticore/searchd.log  # macOS
-```
-
-**Test Connection (untuk semua):**
-```bash
-# Test Manticore HTTP API
-curl http://localhost:9308/sql -d "SHOW TABLES"
-
-# Test Manticore SQL port
-mysql -h 127.0.0.1 -P 9306 -e "SHOW TABLES"
-```
-
-### Empty Recommendations
-- Pastikan user memiliki reading history
-- Pastikan artikel sudah di-sync ke Manticore
-- Check: `SELECT COUNT(*) FROM articles` di Manticore
-
----
-
-## 📝 License
-
-MIT License
-
----
-
-## 👥 Contributors
-
-- Muhammad Hakim
-
----
-
-## 📧 Contact
-
-Untuk pertanyaan atau feedback, silakan buka issue di repository ini.
