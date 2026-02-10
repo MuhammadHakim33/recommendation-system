@@ -15,7 +15,7 @@ class ErrorResponse(BaseModel):
 class SuccessResponse(BaseModel):
     status: str = "success"
     message: str
-    data: list 
+    data: Any
     metadata: Optional[Metadata] = None 
     
     class Config:

@@ -115,12 +115,12 @@ def insert_article(req: ArticleCreateRequest):
 @app.put("/news/{article_id}")
 def update_article(article_id: int, req: ArticleUpdateRequest):
     try:
-        article_service.update_article_to_manticore(article_id, req.dict())
+        result = article_service.update_article_to_manticore(article_id, req.dict())
         return JSONResponse(
             status_code=200,
             content=jsonable_encoder(SuccessResponse(
                 message="Article updated successfully",
-                data=req,
+                data=result,
             ))
         )
     except Exception as e:
@@ -135,12 +135,12 @@ def update_article(article_id: int, req: ArticleUpdateRequest):
 @app.delete("/news/{article_id}")
 def delete_article(article_id: int):
     try:
-        article_service.delete_article_to_manticore(article_id)
+        result = article_service.delete_article_to_manticore(article_id)
         return JSONResponse(
             status_code=200,
             content=jsonable_encoder(SuccessResponse(
                 message="Article deleted successfully",
-                data=article_id,
+                data=result,
             ))
         )
     except Exception as e:

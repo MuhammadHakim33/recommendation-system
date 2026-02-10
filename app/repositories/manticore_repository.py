@@ -1,4 +1,6 @@
+import json
 import manticoresearch
+from manticoresearch.rest import ApiException
 from configs.manticore import conf
 
 class ManticoreRepository:
@@ -13,6 +15,21 @@ class ManticoreRepository:
                 query = f"SELECT id, article_id, embedding_vector FROM articles WHERE article_id IN ({','.join(map(str, ids))})"
                 response = utils_api.sql(query)
                 return response.to_dict()[0]
+        except Exception as e:
+            print(f"Error querying Manticore: {e}")
+            return None
+
+    def get_article_by_id(self, article_id: int):
+        """Get article from Manticore by ID"""
+        try:
+            with manticoresearch.ApiClient(conf) as client:
+                utils_api = manticoresearch.UtilsApi(client)
+                query = f"SELECT id, article_id, title, content FROM articles WHERE article_id={article_id}"
+                response = utils_api.sql(query)
+                return response.to_dict()[0]
+        except ApiException as e:
+            print(f"Error querying Manticore: {e}")
+            return json.loads(e.body)
         except Exception as e:
             print(f"Error querying Manticore: {e}")
             return None
@@ -47,17 +64,24 @@ class ManticoreRepository:
                 query = f"INSERT INTO articles (article_id, title, content) VALUES ('{article['id']}', '{article['title']}', '{article['content']}')"
                 response = utils_api.sql(query)
                 return response.to_dict()[0]
+        except ApiException as e:
+            print(f"Error inserting articles to Manticore: {e}")
+            return json.loads(e.body)
         except Exception as e:
             print(f"Error inserting articles to Manticore: {e}")
             return None
 
-    def update_article(self, article_id: int, article: dict):
+    def update_article(self, article: dict):
+        """Update article in Manticore"""
         try:
             with manticoresearch.ApiClient(conf) as client:
                 utils_api = manticoresearch.UtilsApi(client)
-                query = f"UPDATE articles SET title = '{article['title']}', content = '{article['content']}' WHERE article_id = '{article_id}'"
+                query = f"REPLACE INTO articles (id, article_id, title, content) VALUES ({article['id']}, {article['article_id']}, '{article['title']}', '{article['content']}')"
                 response = utils_api.sql(query)
                 return response.to_dict()[0]
+        except ApiException as e:
+            print(f"Error updating articles to Manticore: {e}")
+            return json.loads(e.body)
         except Exception as e:
             print(f"Error updating articles to Manticore: {e}")
             return None
@@ -66,9 +90,12 @@ class ManticoreRepository:
         try:
             with manticoresearch.ApiClient(conf) as client:
                 utils_api = manticoresearch.UtilsApi(client)
-                query = f"DELETE FROM articles WHERE article_id = '{article_id}'"
+                query = f"DELETE FROM articles WHERE article_id={article_id}"
                 response = utils_api.sql(query)
                 return response.to_dict()[0]
+        except ApiException as e:
+            print(f"Error deleting articles to Manticore: {e}")
+            return json.loads(e.body)
         except Exception as e:
             print(f"Error deleting articles to Manticore: {e}")
             return None
