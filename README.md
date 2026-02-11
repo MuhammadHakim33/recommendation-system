@@ -645,6 +645,168 @@ curl -X DELETE http://localhost:8000/news/1000
 
 ---
 
+### **6. List Articles (MySQL)**
+
+Dapatkan daftar semua artikel dari database MySQL.
+
+```http
+GET /articles?limit={limit}
+```
+
+**Parameters:**
+- `limit` (query, optional) - Maksimal jumlah artikel (default: 100)
+
+**Success Response (200):**
+```json
+{
+  "status": "success",
+  "message": "Retrieved 25 articles from MySQL",
+  "data": [
+    {
+      "id": 1,
+      "title": "Breaking News: AI Revolution",
+      "category": "Technology",
+      "published_at": "2026-02-10T10:00:00"
+    },
+    {
+      "id": 2,
+      "title": "Climate Change Impact",
+      "category": "Environment",
+      "published_at": "2026-02-09T15:30:00"
+    }
+  ]
+}
+```
+
+**Error Response (500):**
+```json
+{
+  "status": "error",
+  "message": "Internal server error",
+  "error": "Database connection failed"
+}
+```
+
+**Example:**
+```bash
+curl http://localhost:8000/articles?limit=50
+```
+
+---
+
+### **7. List Articles (Manticore)**
+
+Dapatkan daftar semua artikel dari Manticore Search index.
+
+```http
+GET /manticore/articles?limit={limit}&offset={offset}
+```
+
+**Parameters:**
+- `limit` (query, optional) - Maksimal jumlah artikel (default: 100)
+- `offset` (query, optional) - Offset untuk pagination (default: 0)
+
+**Success Response (200):**
+```json
+{
+  "status": "success",
+  "message": "Retrieved 25 articles from Manticore",
+  "data": [
+    {
+      "id": 6344659001107546114,
+      "article_id": 1000,
+      "title": "Breaking News: AI Revolution",
+      "content": "Artificial Intelligence is transforming..."
+    },
+    {
+      "id": 6344659001107546115,
+      "article_id": 1001,
+      "title": "Machine Learning Basics",
+      "content": "Introduction to ML concepts..."
+    }
+  ]
+}
+```
+
+**Error Response (500):**
+```json
+{
+  "status": "error",
+  "message": "Error retrieving articles from Manticore",
+  "error": "Connection timeout"
+}
+```
+
+**Example:**
+```bash
+# Get first 50 articles
+curl http://localhost:8000/manticore/articles?limit=50
+
+# Get next 50 articles (pagination)
+curl http://localhost:8000/manticore/articles?limit=50&offset=50
+```
+
+**Use Case:**
+- Melihat semua artikel yang ter-index di Manticore
+- Debugging untuk memastikan artikel sudah di-sync
+- Export data untuk backup
+
+---
+
+### **8. List Users**
+
+Dapatkan daftar semua user dari database MySQL.
+
+```http
+GET /users?limit={limit}
+```
+
+**Parameters:**
+- `limit` (query, optional) - Maksimal jumlah user (default: 100)
+
+**Success Response (200):**
+```json
+{
+  "status": "success",
+  "message": "Retrieved 10 users from MySQL",
+  "data": [
+    {
+      "id": 1,
+      "name": "John Doe",
+      "email": "john@example.com",
+      "created_at": "2026-01-15T08:00:00"
+    },
+    {
+      "id": 2,
+      "name": "Jane Smith",
+      "email": "jane@example.com",
+      "created_at": "2026-01-20T10:30:00"
+    }
+  ]
+}
+```
+
+**Error Response (500):**
+```json
+{
+  "status": "error",
+  "message": "Internal server error",
+  "error": "Database connection failed"
+}
+```
+
+**Example:**
+```bash
+curl http://localhost:8000/users?limit=20
+```
+
+**Use Case:**
+- Admin dashboard untuk melihat daftar user
+- Export data user untuk analisis
+- Debugging user-related issues
+
+---
+
 ## 📊 Database Schema
 
 ### **MySQL Tables**

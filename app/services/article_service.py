@@ -4,8 +4,8 @@ class ArticleService:
     def __init__(self, manticore_repo: ManticoreRepository):
         self.manticore_repo = manticore_repo
 
-    def get_articles(self, query: str, limit: int):
-        articles = self.manticore_repo.search_articles(query, limit)["data"]
+    def get_articles_from_manticore(self, search: str, limit: int):
+        articles = self.manticore_repo.get_articles(search, limit)["data"]
 
         if not articles or len(articles) == 0:
             raise ValueError("No articles found")

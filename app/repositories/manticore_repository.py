@@ -46,16 +46,36 @@ class ManticoreRepository:
             print(f"Error querying Manticore: {e}")
             return None
 
-    def search_articles(self, query: str, limit: int):
+    def get_articles(self, search: str, limit: int):
         try:
             with manticoresearch.ApiClient(conf) as client:
                 utils_api = manticoresearch.UtilsApi(client)
-                query = f"SELECT id, article_id, title, knn_dist() FROM articles WHERE knn(embedding_vector, 5, '{query}') LIMIT {limit}"
+
+                if search:
+                    query = f"SELECT id, article_id, title, knn_dist() FROM articles WHERE knn(embedding_vector, 5, '{search}') LIMIT {limit}"
+                else:
+                    query = f"SELECT id, article_id, title FROM articles LIMIT {limit}"
+
                 response = utils_api.sql(query)
                 return response.to_dict()[0]
         except Exception as e:
             print(f"Error searching Manticore: {e}")
             return None
+    
+    # def get_all_articles(self, limit: int = 100, offset: int = 0):
+    #     """Get all articles from Manticore"""
+    #     try:
+    #         with manticoresearch.ApiClient(conf) as client:
+    #             utils_api = manticoresearch.UtilsApi(client)
+    #             query = f"SELECT id, article_id, title, content FROM articles LIMIT {offset}, {limit}"
+    #             response = utils_api.sql(query)
+    #             return response.to_dict()[0]
+    #     except ApiException as e:
+    #         print(f"Error getting all articles from Manticore: {e}")
+    #         return json.loads(e.body)
+    #     except Exception as e:
+    #         print(f"Error getting all articles from Manticore: {e}")
+    #         return {'data': [], 'total': 0, 'error': str(e), 'warning': ''}
 
     def insert_article(self, article: dict):
         try:

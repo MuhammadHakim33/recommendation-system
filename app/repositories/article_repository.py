@@ -4,6 +4,17 @@ from models.Article import Article, View
 from configs.db import engine
 
 class ArticleRepository:
+    def get_all_articles(self, limit: int = 100):
+        """Get all articles from MySQL"""
+        try:
+            with Session(engine) as session:
+                statement = select(Article).limit(limit)
+                result = session.exec(statement)
+                return result.all()
+        except Exception as e:
+            print(f"Error getting all articles: {e}")
+            return []
+    
     def get_articles_by_ids(self, article_ids: list[int]):
         try:
             with Session(engine) as session:
